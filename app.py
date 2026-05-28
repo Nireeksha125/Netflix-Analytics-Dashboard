@@ -18,7 +18,6 @@ df = pd.read_csv(
 
 # CLEAN DATA
 
-
 df['Vote_Average'] = pd.to_numeric(
     df['Vote_Average'],
     errors='coerce'
@@ -38,7 +37,6 @@ df['Poster_Url'] = df['Poster_Url'].fillna('')
 
 # CREATE DATABASE
 
-
 conn = sqlite3.connect("netflix.db")
 
 cursor = conn.cursor()
@@ -57,19 +55,12 @@ conn.close()
 
 # ML MODEL
 
-
 tfidf = TfidfVectorizer(stop_words='english')
 
 tfidf_matrix = tfidf.fit_transform(df['Genre'])
 
-cosine_sim = cosine_similarity(
-    tfidf_matrix,
-    tfidf_matrix
-)
-
 
 # RECOMMEND FUNCTION
-
 
 def recommend_movies(movie_name):
 
@@ -88,7 +79,12 @@ def recommend_movies(movie_name):
     movie_index = matching_movies.index[0]
 
     similarity_scores = list(
-        enumerate(cosine_sim[movie_index])
+        enumerate(
+            cosine_similarity(
+                tfidf_matrix[movie_index],
+                tfidf_matrix
+            )[0]
+        )
     )
 
     sorted_movies = sorted(
@@ -211,7 +207,6 @@ def home():
 
 # CLICK HISTORY SEARCH
 
-
 @app.route('/search/<movie_name>', methods=['GET'])
 def search_movie(movie_name):
 
@@ -273,7 +268,6 @@ def search_movie(movie_name):
 
 # DELETE HISTORY
 
-
 @app.route('/delete/<int:id>')
 def delete_history(id):
 
@@ -294,7 +288,6 @@ def delete_history(id):
 
 
 # RUN APP
-
 
 if __name__ == '__main__':
     app.run(debug=True)
