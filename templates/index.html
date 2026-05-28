@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Netflix Analytics Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
+    <style>
+
+        body{
+            background-color:#141414;
+            color:white;
+            font-family:Arial;
+            margin:0;
+            padding:0;
+        }
+
+        .navbar{
+            background:black;
+            padding:22px;
+            text-align:center;
+            color:#E50914;
+            font-family:'Bebas Neue', sans-serif;
+            font-size:55px;
+            letter-spacing:3px;
+        }
+
+        .container{
+            display:flex;
+            justify-content:center;
+            flex-wrap:wrap;
+            gap:30px;
+            padding:40px;
+        }
+
+        .card{
+            background:#222;
+            width:250px;
+            padding:30px;
+            border-radius:12px;
+            text-align:center;
+            box-shadow:0px 0px 15px black;
+        }
+
+        .card h1{
+            color:#E50914;
+            font-size:52px;
+        }
+
+        .recommend-section{
+            text-align:center;
+            margin-top:30px;
+        }
+
+        .recommend-title{
+            color:#E50914;
+            font-size:40px;
+            margin-bottom:25px;
+        }
+
+        .recommend-input{
+            width:320px;
+            padding:14px;
+            border:none;
+            border-radius:5px;
+            font-size:17px;
+            outline:none;
+        }
+
+        .recommend-btn{
+            background:#E50914;
+            color:white;
+            border:none;
+            padding:14px 22px;
+            border-radius:5px;
+            cursor:pointer;
+            margin-left:10px;
+        }
+
+        .cancel-btn{
+            background:gray;
+            color:white;
+            border:none;
+            padding:14px 22px;
+            border-radius:5px;
+            cursor:pointer;
+            margin-left:10px;
+        }
+
+        .recommend-grid{
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:center;
+            gap:25px;
+            margin-top:40px;
+        }
+
+        .movie-card{
+            background:#222;
+            width:250px;
+            border-radius:12px;
+            overflow:hidden;
+            box-shadow:0px 0px 15px black;
+        }
+
+        .movie-card img{
+            width:100%;
+            height:350px;
+            object-fit:cover;
+        }
+
+        .movie-info{
+            padding:15px;
+        }
+
+        .movie-info h3{
+            color:#E50914;
+            margin-bottom:10px;
+        }
+
+        .history-section{
+            width:85%;
+            margin:auto;
+            margin-top:50px;
+        }
+
+        .history-title{
+            color:#E50914;
+            text-align:center;
+            font-size:35px;
+            margin-bottom:25px;
+        }
+
+        .history-box{
+            background:#222;
+            padding:18px 25px;
+            border-radius:12px;
+            margin-bottom:18px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .history-link{
+            color:white;
+            text-decoration:none;
+            font-size:22px;
+        }
+
+        .history-link:hover{
+            color:#E50914;
+        }
+
+        .delete-btn{
+            background:none;
+            color:#E50914;
+            text-decoration:none;
+            border:none;
+            outline:none;
+            font-size:24px;
+            cursor:pointer;
+        }
+
+        .chart-container{
+            width:65%;
+            height:400px;
+            margin:auto;
+            margin-top:50px;
+            margin-bottom:50px;
+            background:#222;
+            padding:20px;
+            border-radius:12px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="navbar">
+        NETFLIX ANALYTICS DASHBOARD
+    </div>
+
+    <div class="container">
+
+        <div class="card">
+            <h1>{{ total_records }}</h1>
+            <p>Total Movies</p>
+        </div>
+
+        <div class="card">
+            <h1>{{ average_rating }}</h1>
+            <p>Average Rating</p>
+        </div>
+
+        <div class="card">
+            <h1>{{ highest_popularity }}</h1>
+            <p>Highest Popularity</p>
+        </div>
+
+        <div class="card">
+            <h1>{{ top_genre }}</h1>
+            <p>Top Genre</p>
+        </div>
+
+    </div>
+
+    <div class="recommend-section">
+
+        <h1 class="recommend-title">
+            Movie Recommendation System
+        </h1>
+
+        <form method="POST" action="/">
+
+            <input
+                type="text"
+                name="movie_name"
+                placeholder="Enter Movie Name"
+                value="{{ movie_name }}"
+                required
+                class="recommend-input"
+                list="movies"
+            >
+
+            <datalist id="movies">
+
+                {% for movie in movie_titles %}
+
+                    <option value="{{ movie }}">
+
+                {% endfor %}
+
+            </datalist>
+
+            <button type="submit" class="recommend-btn">
+                Recommend
+            </button>
+
+            <a href="/">
+                <button type="button" class="cancel-btn">
+                    Cancel
+                </button>
+            </a>
+
+        </form>
+
+        {% if recommendations %}
+
+        <div class="recommend-grid">
+
+            {% for movie in recommendations %}
+
+            <div class="movie-card">
+
+                <img src="{{ movie.poster }}" alt="Movie Poster">
+
+                <div class="movie-info">
+
+                    <h3>{{ movie.title }}</h3>
+
+                    <p><b>Genre:</b> {{ movie.genre }}</p>
+
+                    <p><b>Rating:</b> {{ movie.rating }}</p>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    <div class="history-section">
+
+        <h1 class="history-title">
+            Recent Search History
+        </h1>
+
+        {% for item in history %}
+
+        <div class="history-box">
+
+            <a
+                href="/search/{{ item[1] }}"
+                class="history-link"
+            >
+                {{ item[1] }}
+            </a>
+
+            <a
+                href="/delete/{{ item[0] }}"
+                class="delete-btn"
+            >
+                ✖
+            </a>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    <div class="chart-container">
+
+        <canvas id="genreChart"></canvas>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+        const genres = {{ genres | tojson }};
+        const counts = {{ counts | tojson }};
+
+        const ctx = document.getElementById('genreChart').getContext('2d');
+
+        new Chart(ctx, {
+
+            type:'bar',
+
+            data:{
+
+                labels:genres,
+
+                datasets:[{
+
+                    label:'Top 5 Genres',
+
+                    data:counts,
+
+                    backgroundColor:'#E50914'
+
+                }]
+            },
+
+            options:{
+
+                responsive:true,
+
+                maintainAspectRatio:false,
+
+                plugins:{
+
+                    legend:{
+
+                        labels:{
+                            color:'white'
+                        }
+                    }
+                },
+
+                scales:{
+
+                    x:{
+                        ticks:{
+                            color:'white'
+                        }
+                    },
+
+                    y:{
+                        ticks:{
+                            color:'white'
+                        }
+                    }
+                }
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>
